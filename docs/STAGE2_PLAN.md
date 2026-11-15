@@ -119,7 +119,8 @@ public sealed record BuildSpecification(
 | M2SataSharingRule | R8-M2-SATA | m2Count > slots → Error (and stop this rule); assign M.2 drives to slots in order; disabled = union of SharedSataPorts of occupied slots; available = SataPorts − disabled; sataCount > available → Error; else disabled ≠ ∅ → Warning | Error/Warning |
 
 `sataCount` = quantity of SataSsd + Hdd items; `m2Count` = quantity of M2 items.
-Messages are Lithuanian, include the numbers, e.g. `"CPU aušintuvo aukštis 170 mm viršija korpuso ribą 165 mm (trūksta 5 mm)."`
+Messages are English (CLAUDE.md; deviation from the Lithuanian spec examples recorded as D11), include the numbers,
+e.g. `"CPU cooler height 170 mm exceeds the case limit of 165 mm (over by 5 mm)."`
 
 ## 4. Fixture catalog (single source of numbers — use in seed data AND in `Core.Tests/Fixtures/TestComponents.cs`)
 
@@ -253,29 +254,29 @@ Required: cpuId, motherboardId, ram, caseId, psuId. Optional: gpuId, cpuCoolerId
 - **Done when:** `dotnet run --project src/AdvancedPCBuilder.Api` starts, DB is created and seeded, demo.http calls return expected results. Commit.
 
 ### Phase 4 — Integration and isolation tests (Api.Tests)
-- [ ] `ApiFactory : WebApplicationFactory<Program>` that points `ConnectionStrings:Default` at a unique temp SQLite file per factory (delete on dispose)
-- [ ] `CompatibilityApiTests`: S1 via HTTP → 200 Approved, requiredPsuWatts 414; S7 → 200 Rejected with R2 and R5 codes; missing cpuId → 400
-- [ ] `TenantIsolationTests` (each a separate, clearly named test):
+- [x] `ApiFactory : WebApplicationFactory<Program>` that points `ConnectionStrings:Default` at a unique temp SQLite file per factory (delete on dispose)
+- [x] `CompatibilityApiTests`: S1 via HTTP → 200 Approved, requiredPsuWatts 414; S7 → 200 Rejected with R2 and R5 codes; missing cpuId → 400
+- [x] `TenantIsolationTests` (each a separate, clearly named test):
   - pcmeistrai `GET /api/components` contains no `ts-` IDs (and vice versa)
   - pcmeistrai `GET /api/builds/1111…` → 404
   - pcmeistrai `PUT /api/builds/1111…` → 404, then techshop `GET` shows the build unchanged
   - pcmeistrai `DELETE /api/builds/1111…` → 404, build still exists for techshop
   - pcmeistrai `POST /api/compatibility/check` using `ts-` component IDs → 400 "not found"
   - no header → 401; unknown tenant → 401
-- [ ] `DbContextIsolationTests`: context for tenant A sees only A's rows; attaching and modifying a B row through A's context throws
+- [x] `DbContextIsolationTests`: context for tenant A sees only A's rows; attaching and modifying a B row through A's context throws
 - **Done when:** all tests green. Commit.
 
 ### Phase 5 — README, docs, final verification
-- [ ] `README.md` (Lithuanian): purpose; prerequisites (.NET 10 SDK, exact version from `dotnet --version`; VS Code + C# Dev Kit optional; REST Client extension optional); configuration (`appsettings.json`: connection string, PowerEstimates; no API keys needed in Stage 2); **one run command**; test command; tenants and sample data table; demo steps (§9); how to reset DB (delete `advancedpcbuilder.db`); project structure; "Stage 3 scope" list
+- [ ] `README.md` (English): purpose; prerequisites (.NET 10 SDK, exact version from `dotnet --version`; VS Code + C# Dev Kit optional; REST Client extension optional); configuration (`appsettings.json`: connection string, PowerEstimates; no API keys needed in Stage 2); **one run command**; test command; tenants and sample data table; demo steps (§9); how to reset DB (delete `advancedpcbuilder.db`); project structure; "Stage 3 scope" list
 - [ ] `docs/DEFENCE_NOTES.md`: where each rule lives; how a request flows (endpoint → service → resolver → engine → rules); how isolation works (middleware → ITenantContext → query filter → SaveChanges guard); likely "small change" requests and exactly where to make them (see §10)
 - [ ] Fresh-clone check: clone into a temp folder, run the README commands verbatim, all tests pass, app starts
 - **Done when:** `git status` clean, all boxes ticked. Commit. Tell the student to push.
 
 ### Phase 6 — OPTIONAL simple UI (only if Phases 0–5 are done and committed)
 - [ ] One `wwwroot/index.html` (vanilla JS + inline CSS, no build step), served via `UseDefaultFiles()` + `UseStaticFiles()`
-- [ ] Tenant dropdown (techshop / pcmeistrai, hardcoded), component dropdowns loaded from `/api/components?type=`, quantity inputs, case fans, "Tikrinti" button
+- [ ] Tenant dropdown (techshop / pcmeistrai, hardcoded), component dropdowns loaded from `/api/components?type=`, quantity inputs, case fans, "Check" button
 - [ ] Result panel: status badge, required PSU W, issues table (code, severity, message), response time in ms
-- [ ] Preset buttons "S1", "S7", "S7 pataisyta" to make the demo fast
+- [ ] Preset buttons "S1", "S7", "S7 fixed" to make the demo fast
 - **Done when:** demo steps work through the page. Commit.
 - Timebox: if it is not working within ~1 hour, revert and demo via Scalar/demo.http.
 
