@@ -1,0 +1,199 @@
+# Demo requests for the defence. Open in VS Code with the "REST Client" extension
+# (or in Visual Studio / Rider) and click "Send Request" above each call.
+# Start the API first:  dotnet run --project src/AdvancedPCBuilder.Api
+
+@baseUrl = http://localhost:5080
+@techshopBuild = 11111111-1111-1111-1111-111111111111
+
+### 0. Health (no tenant needed) → 200 "Healthy"
+GET {{baseUrl}}/health
+
+### 1. techshop catalog: CPUs only → 200, only ts- IDs
+GET {{baseUrl}}/api/components?type=Cpu
+X-Tenant-Id: techshop
+
+### 2. S1 normal build → 200, status Approved, requiredPsuWatts 414, no issues
+POST {{baseUrl}}/api/compatibility/check
+X-Tenant-Id: techshop
+Content-Type: application/json
+
+{
+  "cpuId": "ts-cpu-65-am5",
+  "motherboardId": "ts-mb-matx-am5",
+  "ram": { "id": "ts-ram-ddr5-34", "quantity": 2 },
+  "gpuId": "ts-gpu-200-270",
+  "cpuCoolerId": "ts-cool-air-155",
+  "caseId": "ts-case-mid-360",
+  "psuId": "ts-psu-600",
+  "storage": [ { "id": "ts-ssd-m2-1tb", "quantity": 1 } ],
+  "caseFans": 3
+}
+
+### 3. S7 multiple errors → 200, status Rejected, requiredPsuWatts 600,
+#      R2-COOLER-HEIGHT (170 > 165, difference 5) AND R5-PSU-POWER (600 > 450, difference 150)
+POST {{baseUrl}}/api/compatibility/check
+X-Tenant-Id: techshop
+Content-Type: application/json
+
+{
+  "cpuId": "ts-cpu-170-am5",
+  "motherboardId": "ts-mb-atx-am5",
+  "ram": { "id": "ts-ram-ddr5-34", "quantity": 2 },
+  "gpuId": "ts-gpu-250-280",
+  "cpuCoolerId": "ts-cool-air-170",
+  "caseId": "ts-case-mid-360",
+  "psuId": "ts-psu-450",
+  "storage": [ { "id": "ts-ssd-m2-1tb", "quantity": 1 } ],
+  "caseFans": 2
+}
+
+### 4. S7 fixed (cooler → ts-cool-air-155-dual, PSU → ts-psu-750) → 200, Approved, requiredPsuWatts 600
+POST {{baseUrl}}/api/compatibility/check
+X-Tenant-Id: techshop
+Content-Type: application/json
+
+{
+  "cpuId": "ts-cpu-170-am5",
+  "motherboardId": "ts-mb-atx-am5",
+  "ram": { "id": "ts-ram-ddr5-34", "quantity": 2 },
+  "gpuId": "ts-gpu-250-280",
+  "cpuCoolerId": "ts-cool-air-155-dual",
+  "caseId": "ts-case-mid-360",
+  "psuId": "ts-psu-750",
+  "storage": [ { "id": "ts-ssd-m2-1tb", "quantity": 1 } ],
+  "caseFans": 2
+}
+
+### 5. Validation error: cpuId missing → 400 ProblemDetails, errors.cpuId (rules are not executed)
+POST {{baseUrl}}/api/compatibility/check
+X-Tenant-Id: techshop
+Content-Type: application/json
+
+{
+  "motherboardId": "ts-mb-atx-am5",
+  "ram": { "id": "ts-ram-ddr5-34", "quantity": 2 },
+  "caseId": "ts-case-mid-360",
+  "psuId": "ts-psu-600"
+}
+
+### 6. S4 form factor: E-ATX board in a Mini-ITX case → 200, Rejected, exactly one issue R1-FORM-FACTOR
+POST {{baseUrl}}/api/compatibility/check
+X-Tenant-Id: techshop
+Content-Type: application/json
+
+{
+  "cpuId": "ts-cpu-65-am5",
+  "motherboardId": "ts-mb-eatx-am5",
+  "ram": { "id": "ts-ram-ddr5-34", "quantity": 2 },
+  "gpuId": "ts-gpu-200-270",
+  "cpuCoolerId": "ts-cool-air-155",
+  "caseId": "ts-case-itx",
+  "psuId": "ts-psu-600",
+  "storage": [ { "id": "ts-ssd-m2-1tb", "quantity": 1 } ],
+  "caseFans": 1
+}
+
+### ---------------- Tenant isolation ----------------
+
+### 7. techshop sees its own saved build "Biuro PC" → 200
+GET {{baseUrl}}/api/builds/{{techshopBuild}}
+X-Tenant-Id: techshop
+
+### 8. pcmeistrai lists builds → 200, only "Dirbtuvių PC" (2222…), no techshop build
+GET {{baseUrl}}/api/builds
+X-Tenant-Id: pcmeistrai
+
+### 9. pcmeistrai reads techshop's build → 404 (same answer as for an ID that does not exist)
+GET {{baseUrl}}/api/builds/{{techshopBuild}}
+X-Tenant-Id: pcmeistrai
+
+### 10. pcmeistrai tries to overwrite techshop's build → 404
+PUT {{baseUrl}}/api/builds/{{techshopBuild}}
+X-Tenant-Id: pcmeistrai
+Content-Type: application/json
+
+{
+  "name": "Hacked",
+  "request": {
+    "cpuId": "pm-cpu-65-am5",
+    "motherboardId": "pm-mb-atx-am5",
+    "ram": { "id": "pm-ram-ddr5-34", "quantity": 2 },
+    "caseId": "pm-case-mid-360",
+    "psuId": "pm-psu-600"
+  }
+}
+
+### 11. pcmeistrai tries to delete techshop's build → 404
+DELETE {{baseUrl}}/api/builds/{{techshopBuild}}
+X-Tenant-Id: pcmeistrai
+
+### 12. techshop again → 200, build still named "Biuro PC", unchanged
+GET {{baseUrl}}/api/builds/{{techshopBuild}}
+X-Tenant-Id: techshop
+
+### 13. pcmeistrai uses techshop component IDs → 400, "Component 'ts-…' was not found."
+POST {{baseUrl}}/api/compatibility/check
+X-Tenant-Id: pcmeistrai
+Content-Type: application/json
+
+{
+  "cpuId": "ts-cpu-65-am5",
+  "motherboardId": "ts-mb-matx-am5",
+  "ram": { "id": "ts-ram-ddr5-34", "quantity": 2 },
+  "caseId": "ts-case-mid-360",
+  "psuId": "ts-psu-600"
+}
+
+### 14. No tenant header → 401
+GET {{baseUrl}}/api/components
+
+### 15. Unknown tenant → 401
+GET {{baseUrl}}/api/components
+X-Tenant-Id: no-such-shop
+
+### ---------------- Saved builds CRUD (techshop) ----------------
+
+### 16. Save S7 as a new build → 201 + Location header; the stored report is Rejected
+# @name created
+POST {{baseUrl}}/api/builds
+X-Tenant-Id: techshop
+Content-Type: application/json
+
+{
+  "name": "Gaming PC (draft)",
+  "request": {
+    "cpuId": "ts-cpu-170-am5",
+    "motherboardId": "ts-mb-atx-am5",
+    "ram": { "id": "ts-ram-ddr5-34", "quantity": 2 },
+    "gpuId": "ts-gpu-250-280",
+    "cpuCoolerId": "ts-cool-air-170",
+    "caseId": "ts-case-mid-360",
+    "psuId": "ts-psu-450",
+    "storage": [ { "id": "ts-ssd-m2-1tb", "quantity": 1 } ],
+    "caseFans": 2
+  }
+}
+
+### 17. Fix it (PUT re-runs the check) → 200, report Approved
+PUT {{baseUrl}}/api/builds/{{created.response.body.$.id}}
+X-Tenant-Id: techshop
+Content-Type: application/json
+
+{
+  "name": "Gaming PC",
+  "request": {
+    "cpuId": "ts-cpu-170-am5",
+    "motherboardId": "ts-mb-atx-am5",
+    "ram": { "id": "ts-ram-ddr5-34", "quantity": 2 },
+    "gpuId": "ts-gpu-250-280",
+    "cpuCoolerId": "ts-cool-air-155-dual",
+    "caseId": "ts-case-mid-360",
+    "psuId": "ts-psu-750",
+    "storage": [ { "id": "ts-ssd-m2-1tb", "quantity": 1 } ],
+    "caseFans": 2
+  }
+}
+
+### 18. Delete it → 204
+DELETE {{baseUrl}}/api/builds/{{created.response.body.$.id}}
+X-Tenant-Id: techshop

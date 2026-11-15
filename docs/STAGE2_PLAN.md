@@ -244,12 +244,12 @@ Required: cpuId, motherboardId, ram, caseId, psuId. Optional: gpuId, cpuCoolerId
 - **Done when:** build + tests green. Commit.
 
 ### Phase 3 — API
-- [ ] `HttpTenantContext` (scoped) + `TenantResolutionMiddleware` for `/api/*` (401 on missing/unknown tenant; checks Tenants table)
-- [ ] Endpoints from §6 in three static endpoint classes using `MapGroup`; handlers only call services
-- [ ] ProblemDetails for 400/401/404; JSON enums as strings; `PowerEstimates` bound from config
-- [ ] `AddOpenApi()` + `MapOpenApi()` + `MapScalarApiReference()` (development and default run)
-- [ ] `demo.http` with: S1 approved, S7 rejected, S7 fixed, validation error, tenant isolation calls
-- [ ] `public partial class Program;` for tests
+- [x] `HttpTenantContext` (scoped) + `TenantResolutionMiddleware` for `/api/*` (401 on missing/unknown tenant; checks Tenants table)
+- [x] Endpoints from §6 in three static endpoint classes using `MapGroup`; handlers only call services
+- [x] ProblemDetails for 400/401/404; JSON enums as strings; `PowerEstimates` bound from config
+- [x] `AddOpenApi()` + `MapOpenApi()` + `MapScalarApiReference()` (development and default run)
+- [x] `demo.http` with: S1 approved, S7 rejected, S7 fixed, validation error, tenant isolation calls
+- [x] `public partial class Program;` for tests
 - **Done when:** `dotnet run --project src/AdvancedPCBuilder.Api` starts, DB is created and seeded, demo.http calls return expected results. Commit.
 
 ### Phase 4 — Integration and isolation tests (Api.Tests)
