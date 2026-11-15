@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/AdvancedPCBuilder.Api/AdvancedPCBuilder.Api.csproj" />
+    <Project Path="src/AdvancedPCBuilder.Core/AdvancedPCBuilder.Core.csproj" />
+    <Project Path="src/AdvancedPCBuilder.Infrastructure/AdvancedPCBuilder.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/AdvancedPCBuilder.Api.Tests/AdvancedPCBuilder.Api.Tests.csproj" />
+    <Project Path="tests/AdvancedPCBuilder.Core.Tests/AdvancedPCBuilder.Core.Tests.csproj" />
+  </Folder>
+</Solution>
