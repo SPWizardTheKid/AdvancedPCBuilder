@@ -267,9 +267,9 @@ Required: cpuId, motherboardId, ram, caseId, psuId. Optional: gpuId, cpuCoolerId
 - **Done when:** all tests green. Commit.
 
 ### Phase 5 — README, docs, final verification
-- [ ] `README.md` (English): purpose; prerequisites (.NET 10 SDK, exact version from `dotnet --version`; VS Code + C# Dev Kit optional; REST Client extension optional); configuration (`appsettings.json`: connection string, PowerEstimates; no API keys needed in Stage 2); **one run command**; test command; tenants and sample data table; demo steps (§9); how to reset DB (delete `advancedpcbuilder.db`); project structure; "Stage 3 scope" list
-- [ ] `docs/DEFENCE_NOTES.md`: where each rule lives; how a request flows (endpoint → service → resolver → engine → rules); how isolation works (middleware → ITenantContext → query filter → SaveChanges guard); likely "small change" requests and exactly where to make them (see §10)
-- [ ] Fresh-clone check: clone into a temp folder, run the README commands verbatim, all tests pass, app starts
+- [x] `README.md` (English): purpose; prerequisites (.NET 10 SDK, exact version from `dotnet --version`; VS Code + C# Dev Kit optional; REST Client extension optional); configuration (`appsettings.json`: connection string, PowerEstimates; no API keys needed in Stage 2); **one run command**; test command; tenants and sample data table; demo steps (§9); how to reset DB (delete `advancedpcbuilder.db`); project structure; "Stage 3 scope" list
+- [x] `docs/DEFENCE_NOTES.md`: where each rule lives; how a request flows (endpoint → service → resolver → engine → rules); how isolation works (middleware → ITenantContext → query filter → SaveChanges guard); likely "small change" requests and exactly where to make them (see §10)
+- [x] Fresh-clone check: clone into a temp folder, run the README commands verbatim, all tests pass, app starts
 - **Done when:** `git status` clean, all boxes ticked. Commit. Tell the student to push.
 
 ### Phase 6 — OPTIONAL simple UI (only if Phases 0–5 are done and committed)
