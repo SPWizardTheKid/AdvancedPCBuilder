@@ -77,3 +77,18 @@ Template:
   guard throws on other-tenant modify/add, forged row stopped by concurrency token, seeding twice is safe.
 - Student review — kept / rewritten / rejected and why: <TODO student>
 - How verified: <TODO student>
+
+## Notes for the next phase (handoff, written after Phase 2)
+Open points a fresh session needs before starting Phase 3+:
+1. Issue JSON field name: spec §3.1 output JSON uses `"rule"`, the C# property is `CompatibilityIssue.RuleCode`.
+   Phase 3 must decide the mapping (API DTO or `[JsonPropertyName]` in the Api layer; keep Core attribute-free).
+2. `PowerEstimates` has NO default values in code (spec: constants live in configuration). Phase 3 must add the
+   `PowerEstimates` section to `appsettings.json` (50/5/8/5/10/3/5, margin 20, headroom 10) and should fail at
+   startup if it is missing, otherwise every estimate silently becomes 0 W.
+3. The list of the 9 rules currently exists only in `tests/AdvancedPCBuilder.Core.Tests/Fixtures/TestEngine.cs`.
+   Phase 3 registers all 9 `ICompatibilityRule` classes, `PowerCalculator`, `CompatibilityEngine`, `BuildResolver`,
+   `CompatibilityCheckService` and `BuildService` in DI (`PsuPowerRule` needs `PowerCalculator` + `PowerEstimates`).
+4. `SeedData.InitializeAsync(DbContextOptions<AppDbContext>, CompatibilityEngine)` must be called from `Program.cs`
+   at startup. `AddDbContext` registers the options as scoped, so resolve them inside a service scope.
+   `AddInfrastructure(connectionString)` expects the caller to register a scoped `ITenantContext`.
+5. README language conflict for Phase 5: STAGE2_PLAN.md says Lithuanian, CLAUDE.md says English. Ask the student.
