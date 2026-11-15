@@ -224,12 +224,12 @@ Required: cpuId, motherboardId, ram, caseId, psuId. Optional: gpuId, cpuCoolerId
 - **Done when:** `dotnet build` and `dotnet test` succeed (empty test projects OK). Commit.
 
 ### Phase 1 — Core module: domain, rules, engine + unit tests (most important phase)
-- [ ] Component spec records and enums (§2, §4)
-- [ ] `BuildSpecification`, `StorageItem`, `PowerEstimates`, `PowerCalculator`
-- [ ] `ICompatibilityRule` + 9 rule classes (§3 table), `RuleCodes` constants
-- [ ] `CompatibilityEngine`, `CompatibilityReport`, status mapping
-- [ ] `Core.Tests/Fixtures/TestComponents.cs` mirroring §4 + a small fluent `TestBuild` helper
-- [ ] All tests in §5 (scenarios, pairs, per-rule, engine, power)
+- [x] Component spec records and enums (§2, §4)
+- [x] `BuildSpecification`, `StorageItem`, `PowerEstimates`, `PowerCalculator`
+- [x] `ICompatibilityRule` + 9 rule classes (§3 table), `RuleCodes` constants
+- [x] `CompatibilityEngine`, `CompatibilityReport`, status mapping
+- [x] `Core.Tests/Fixtures/TestComponents.cs` mirroring §4 + a small fluent `TestBuild` helper
+- [x] All tests in §5 (scenarios, pairs, per-rule, engine, power)
 - **Done when:** all tests green; Core has zero package references. Commit.
 - *If time runs very short:* R1–R5 + R7 are the minimum; R6 and R8 next. Never skip tests for a rule that exists.
 

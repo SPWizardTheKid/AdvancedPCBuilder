@@ -15,3 +15,4 @@ This list feeds the Stage 3 "what changed and why" section.
 | D8 | — | `EnsureCreated()` instead of migrations | Migrations will be introduced together with PostgreSQL in Stage 3. |
 | D9 | .NET 8 | .NET 10 | .NET 8 reached end of support on 2026-11-10; .NET 10 is the current LTS. |
 | D10 | — | `global.json` pins .NET SDK 10.0.404 (`rollForward: latestFeature`) | Reproducible builds: the dev machine also has a 10.0 preview SDK installed; the README can state one exact version. |
+| D11 | Rule messages in Lithuanian (§3.5 examples; also STAGE2_PLAN §3) | Rule messages in English, same content and numbers as the spec examples (e.g. "CPU cooler height 170 mm exceeds the case limit of 165 mm (over by 5 mm).") | CLAUDE.md conventions require English user-facing messages. Tests assert codes and numbers, not texts, so the language does not affect behaviour. |
