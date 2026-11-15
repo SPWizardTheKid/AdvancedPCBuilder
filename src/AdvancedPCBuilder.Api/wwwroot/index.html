@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AdvancedPCBuilder</title>
+  <style>
+    /* Plain CSS, no framework. Colours are defined once here. */
+    :root {
+      --bg: #f5f6f8; --panel: #ffffff; --text: #1d2430; --muted: #5c6675; --border: #d8dde4;
+      --accent: #2f5bd3; --ok: #1d7a3e; --warn: #9a6200; --err: #b42318;
+      --ok-bg: #e6f4ea; --warn-bg: #fff4dc; --err-bg: #fde8e6;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--bg); color: var(--text); }
+    header { padding: 14px 20px; background: var(--panel); border-bottom: 1px solid var(--border); display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; }
+    header h1 { font-size: 18px; margin: 0; }
+    header a { color: var(--accent); }
+    main { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; padding: 16px 20px; max-width: 1200px; margin: 0 auto; }
+    section { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 16px; min-width: 0; }
+    #resultPanel { position: sticky; top: 16px; align-self: start; }   /* result stays visible while the form scrolls */
+    @media (max-width: 860px) { main { grid-template-columns: minmax(0, 1fr); padding: 16px; } #resultPanel { position: static; } }
+    .presets { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    h2 { font-size: 16px; margin: 0 0 12px; }
+    label { display: block; font-size: 13px; color: var(--muted); margin: 10px 0 3px; }
+    select, input[type=number] { width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; font: inherit; background: #fff; }
+    .row { display: grid; grid-template-columns: minmax(0, 1fr) 90px; gap: 8px; }
+    .storage-item { display: grid; grid-template-columns: minmax(0, 1fr) 90px; gap: 8px; align-items: center; margin-top: 4px; }
+    .storage-item span { font-size: 14px; overflow-wrap: anywhere; }
+    .buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+    button { padding: 7px 14px; border-radius: 6px; border: 1px solid var(--border); background: #fff; font: inherit; cursor: pointer; }
+    button.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+    .badge { display: inline-block; padding: 4px 12px; border-radius: 999px; font-weight: 700; }
+    .Approved { background: var(--ok-bg); color: var(--ok); }
+    .ApprovedWithWarnings { background: var(--warn-bg); color: var(--warn); }
+    .Rejected, .Failed { background: var(--err-bg); color: var(--err); }
+    .summary { display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: center; margin-bottom: 12px; }
+    .muted { color: var(--muted); font-size: 13px; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    td.sev-Error { color: var(--err); font-weight: 600; }
+    td.sev-Warning { color: var(--warn); font-weight: 600; }
+    pre { background: var(--bg); padding: 10px; border-radius: 6px; overflow-x: auto; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>AdvancedPCBuilder — compatibility check</h1>
+    <div>
+      <label for="tenant" style="display:inline; margin-right:6px">Tenant (X-Tenant-Id)</label>
+      <select id="tenant" style="width:auto">
+        <option value="techshop">techshop — TechShop UAB</option>
+        <option value="pcmeistrai">pcmeistrai — PC Meistrai MB</option>
+      </select>
+    </div>
+    <div class="presets">
+      <span class="muted">Demo presets (techshop):</span>
+      <button data-preset="S1">S1</button>
+      <button data-preset="S7">S7</button>
+      <button data-preset="S7fixed">S7 fixed</button>
+    </div>
+    <a href="/scalar">API reference (Scalar)</a>
+  </header>
+
+  <main>
+    <section>
+      <h2>Build</h2>
+
+      <label for="cpu">CPU *</label>
+      <select id="cpu"></select>
+
+      <label for="motherboard">Motherboard *</label>
+      <select id="motherboard"></select>
+
+      <label for="ram">RAM * and number of modules</label>
+      <div class="row">
+        <select id="ram"></select>
+        <input id="ramQty" type="number" min="1" value="2" aria-label="RAM modules">
+      </div>
+
+      <label for="gpu">GPU (optional)</label>
+      <select id="gpu"></select>
+
+      <label for="cooler">CPU cooler (optional)</label>
+      <select id="cooler"></select>
+
+      <label for="case">Case *</label>
+      <select id="case"></select>
+
+      <label for="psu">PSU *</label>
+      <select id="psu"></select>
+
+      <label>Storage (quantity, 0 = not used)</label>
+      <div id="storage"></div>
+
+      <label for="caseFans">Case fans (0–10)</label>
+      <input id="caseFans" type="number" min="0" max="10" value="3">
+
+      <div class="buttons">
+        <button class="primary" id="check">Check</button>
+      </div>
+      <p class="muted">* required. The presets fill this form with techshop components (and switch the tenant to techshop).</p>
+    </section>
+
+    <section id="resultPanel">
+      <h2>Result</h2>
+      <div id="result"><p class="muted">Choose components and press "Check".</p></div>
+    </section>
+  </main>
+
+  <script>
+    // All data comes from the API; this page only collects the selection and shows the answer.
+    // The page never decides compatibility itself — the rule engine on the server does.
+
+    // Dropdown id -> component type in GET /api/components?type=...
+    const SELECTS = { cpu: "Cpu", motherboard: "Motherboard", ram: "Ram", gpu: "Gpu",
+                      cooler: "Cooler", case: "Case", psu: "Psu" };
+    const OPTIONAL = ["gpu", "cooler"];
+
+    // Scenario presets (STAGE2_PLAN §5), techshop component IDs.
+    const PRESETS = {
+      S1: { cpu: "ts-cpu-65-am5", motherboard: "ts-mb-matx-am5", ram: "ts-ram-ddr5-34", ramQty: 2,
+            gpu: "ts-gpu-200-270", cooler: "ts-cool-air-155", case: "ts-case-mid-360", psu: "ts-psu-600",
+            storage: { "ts-ssd-m2-1tb": 1 }, caseFans: 3 },
+      S7: { cpu: "ts-cpu-170-am5", motherboard: "ts-mb-atx-am5", ram: "ts-ram-ddr5-34", ramQty: 2,
+            gpu: "ts-gpu-250-280", cooler: "ts-cool-air-170", case: "ts-case-mid-360", psu: "ts-psu-450",
+            storage: { "ts-ssd-m2-1tb": 1 }, caseFans: 2 },
+      S7fixed: { cpu: "ts-cpu-170-am5", motherboard: "ts-mb-atx-am5", ram: "ts-ram-ddr5-34", ramQty: 2,
+            gpu: "ts-gpu-250-280", cooler: "ts-cool-air-155-dual", case: "ts-case-mid-360", psu: "ts-psu-750",
+            storage: { "ts-ssd-m2-1tb": 1 }, caseFans: 2 }
+    };
+
+    const $ = (id) => document.getElementById(id);
+
+    // Every API call sends the selected tenant in the X-Tenant-Id header.
+    function api(path, options = {}) {
+      return fetch(path, {
+        ...options,
+        headers: { "X-Tenant-Id": $("tenant").value, "Content-Type": "application/json" }
+      });
+    }
+
+    // Small helper: create an element with text (textContent, so API data is never parsed as HTML).
+    function el(tag, text, className) {
+      const node = document.createElement(tag);
+      if (text !== undefined) node.textContent = text;
+      if (className) node.className = className;
+      return node;
+    }
+
+    // ---- Catalog: fill the dropdowns from the current tenant's components ----
+    async function loadCatalog() {
+      const types = [...Object.values(SELECTS), "Storage"];
+      const lists = await Promise.all(types.map(async (type) => {
+        const response = await api(`/api/components?type=${type}`);
+        return response.ok ? response.json() : [];
+      }));
+      const byType = Object.fromEntries(types.map((type, i) => [type, lists[i]]));
+
+      for (const [selectId, type] of Object.entries(SELECTS)) {
+        const select = $(selectId);
+        select.replaceChildren();
+        // Empty first option: "none" for optional parts; for required parts it lets you demo the 400 error.
+        select.append(new Option(OPTIONAL.includes(selectId) ? "— none —" : "— select —", ""));
+        for (const component of byType[type]) {
+          select.append(new Option(`${component.name} (${component.id})`, component.id));
+        }
+        if (!OPTIONAL.includes(selectId) && byType[type].length > 0) select.selectedIndex = 1;
+      }
+
+      // Storage: one quantity input per storage component.
+      const storage = $("storage");
+      storage.replaceChildren();
+      for (const component of byType.Storage) {
+        const row = el("div", undefined, "storage-item");
+        const input = el("input");
+        input.type = "number"; input.min = "0"; input.value = "0";
+        input.dataset.id = component.id;
+        input.setAttribute("aria-label", component.name);
+        row.append(el("span", `${component.name} (${component.id})`), input);
+        storage.append(row);
+      }
+    }
+
+    // ---- Build the request body exactly as the API expects it (STAGE2_PLAN §6) ----
+    function readForm() {
+      const value = (id) => $(id).value || null;   // "" -> null, so a missing part is really missing
+      const storage = [...$("storage").querySelectorAll("input")]
+        .filter((input) => Number(input.value) > 0)
+        .map((input) => ({ id: input.dataset.id, quantity: Number(input.value) }));
+
+      return {
+        cpuId: value("cpu"),
+        motherboardId: value("motherboard"),
+        ram: value("ram") ? { id: value("ram"), quantity: Number($("ramQty").value) } : null,
+        gpuId: value("gpu"),
+        cpuCoolerId: value("cooler"),
+        caseId: value("case"),
+        psuId: value("psu"),
+        storage,
+        caseFans: Number($("caseFans").value)
+      };
+    }
+
+    // ---- Send the check and show the answer ----
+    async function check() {
+      const body = readForm();
+      const result = $("result");
+      result.replaceChildren(el("p", "Checking…", "muted"));
+
+      const started = performance.now();
+      let response, data;
+      try {
+        response = await api("/api/compatibility/check", { method: "POST", body: JSON.stringify(body) });
+        data = await response.json();
+      } catch (error) {
+        result.replaceChildren(el("p", `API not reachable: ${error.message}`, "badge Failed"));
+        return;
+      }
+      const elapsedMs = Math.round(performance.now() - started);
+
+      if (response.ok) {
+        showReport(data, elapsedMs);
+      } else {
+        showProblem(response.status, data, elapsedMs);
+      }
+      result.append(rawJson(body, data));
+      // On a narrow screen the result is below the form: scroll to it. On desktop it is already visible.
+      if (window.matchMedia("(max-width: 860px)").matches) $("resultPanel").scrollIntoView();
+    }
+
+    // 200: status badge, required PSU watts, issues table.
+    function showReport(report, elapsedMs) {
+      const summary = el("div", undefined, "summary");
+      summary.append(
+        el("span", report.status, `badge ${report.status}`),
+        el("span", `Required PSU: ${report.requiredPsuWatts} W`),
+        el("span", `Response time: ${elapsedMs} ms`, "muted"));
+
+      const parts = [summary];
+      if (report.issues.length === 0) {
+        parts.push(el("p", "No issues — all rules passed."));
+      } else {
+        const table = el("table");
+        const head = el("tr");
+        for (const title of ["Rule", "Severity", "Message"]) head.append(el("th", title));
+        table.append(head);
+        for (const issue of report.issues) {
+          const row = el("tr");
+          row.append(el("td", issue.rule), el("td", issue.severity, `sev-${issue.severity}`), el("td", issue.message));
+          table.append(row);
+        }
+        const wrap = el("div", undefined, "table-wrap");
+        wrap.append(table);
+        parts.push(wrap);
+      }
+      $("result").replaceChildren(...parts);
+    }
+
+    // 400 / 401: ProblemDetails with the errors per field.
+    function showProblem(status, problem, elapsedMs) {
+      const summary = el("div", undefined, "summary");
+      summary.append(
+        el("span", `HTTP ${status}`, "badge Failed"),
+        el("span", problem.title ?? "Request failed"),
+        el("span", `Response time: ${elapsedMs} ms`, "muted"));
+
+      const parts = [summary];
+      if (problem.detail) parts.push(el("p", problem.detail));
+      if (problem.errors) {
+        const list = el("ul");
+        for (const [field, messages] of Object.entries(problem.errors)) {
+          list.append(el("li", `${field}: ${messages.join(" ")}`));
+        }
+        parts.push(list);
+      }
+      $("result").replaceChildren(...parts);
+    }
+
+    // Collapsible raw request/response, useful to show the JSON contract.
+    function rawJson(request, response) {
+      const details = el("details");
+      details.append(el("summary", "Raw request / response JSON"),
+                     el("pre", "Request:\n" + JSON.stringify(request, null, 2)),
+                     el("pre", "Response:\n" + JSON.stringify(response, null, 2)));
+      return details;
+    }
+
+    // ---- Presets ----
+    async function applyPreset(name) {
+      const preset = PRESETS[name];
+      if ($("tenant").value !== "techshop") {
+        $("tenant").value = "techshop";
+        await loadCatalog();
+      }
+      for (const selectId of Object.keys(SELECTS)) $(selectId).value = preset[selectId] ?? "";
+      $("ramQty").value = preset.ramQty;
+      $("caseFans").value = preset.caseFans;
+      for (const input of $("storage").querySelectorAll("input")) {
+        input.value = preset.storage[input.dataset.id] ?? 0;
+      }
+      await check();
+    }
+
+    // ---- Wiring ----
+    $("tenant").addEventListener("change", async () => {
+      await loadCatalog();
+      $("result").replaceChildren(el("p", `Tenant changed to ${$("tenant").value}; catalog reloaded.`, "muted"));
+    });
+    $("check").addEventListener("click", check);
+    for (const button of document.querySelectorAll("[data-preset]")) {
+      button.addEventListener("click", () => applyPreset(button.dataset.preset));
+    }
+    loadCatalog();
+  </script>
+</body>
+</html>

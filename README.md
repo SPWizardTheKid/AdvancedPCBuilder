@@ -48,8 +48,12 @@ From the repository root:
 dotnet run --project src/AdvancedPCBuilder.Api
 ```
 
-The API listens on **http://localhost:5080**. Opening `http://localhost:5080` redirects to the
-interactive API page `http://localhost:5080/scalar`.
+The app listens on **http://localhost:5080**:
+
+- `http://localhost:5080` — simple demo page: choose a tenant and components (or press a preset
+  S1 / S7 / S7 fixed), press **Check**, see the status, required PSU watts, the issues table and
+  the response time. The page only calls the API below; all rules run on the server.
+- `http://localhost:5080/scalar` — interactive API reference for every endpoint.
 
 On the first start the database `src/AdvancedPCBuilder.Api/advancedpcbuilder.db` is created and
 seeded with the two tenants, their catalogs and one saved build each.
@@ -60,9 +64,9 @@ seeded with the two tenants, their catalogs and one saved build each.
 dotnet test
 ```
 
-Expected: **95 tests, all passing** — 75 in `AdvancedPCBuilder.Core.Tests` (rules, engine, power
-calculator, scenarios S1–S7, request validation) and 20 in `AdvancedPCBuilder.Api.Tests`
-(HTTP integration and tenant isolation). The API tests use their own temporary SQLite file per
+Expected: **96 tests, all passing** — 75 in `AdvancedPCBuilder.Core.Tests` (rules, engine, power
+calculator, scenarios S1–S7, request validation) and 21 in `AdvancedPCBuilder.Api.Tests`
+(HTTP integration, tenant isolation, demo page is served). The API tests use their own temporary SQLite file per
 test class, so they never touch the demo database.
 
 ## Configuration
@@ -144,16 +148,19 @@ pcmeistrai has the same models under `pm-` IDs: `pm-cpu-65-am5`, `pm-mb-atx-am5`
 
 ## Demo steps
 
-1. `dotnet run --project src/AdvancedPCBuilder.Api` → open `http://localhost:5080/scalar`
-   (or use `demo.http`). In Scalar, fill the `X-Tenant-Id` field of each request.
-2. Tenant `techshop`, check **S7** (`demo.http` #3): `ts-cpu-170-am5`, `ts-mb-atx-am5`,
-   `ts-ram-ddr5-34`×2, `ts-gpu-250-280`, `ts-cool-air-170`, `ts-case-mid-360`, `ts-psu-450`,
-   `ts-ssd-m2-1tb`×1, 2 case fans → **Rejected**: R2 cooler 5 mm too tall AND R5 PSU short by
-   150 W (required 600 W). Both errors are reported at once.
-3. Swap the cooler to `ts-cool-air-155-dual` and the PSU to `ts-psu-750` (#4) → **Approved**,
-   required 600 W.
-4. Error cases: remove `cpuId` (#5) → **400** with `errors.cpuId`; or S4, an E-ATX board in a
-   Mini-ITX case (#6) → **Rejected** with only R1-FORM-FACTOR.
+Steps 2–4 can be done on the demo page (`http://localhost:5080`), steps 2–5 with `demo.http`
+(request numbers in brackets) or Scalar (fill the `X-Tenant-Id` field of each request).
+
+1. `dotnet run --project src/AdvancedPCBuilder.Api` → open `http://localhost:5080`.
+2. Tenant `techshop`, check **S7** (preset button "S7"; `demo.http` #3): `ts-cpu-170-am5`,
+   `ts-mb-atx-am5`, `ts-ram-ddr5-34`×2, `ts-gpu-250-280`, `ts-cool-air-170`, `ts-case-mid-360`,
+   `ts-psu-450`, `ts-ssd-m2-1tb`×1, 2 case fans → **Rejected**: R2 cooler 5 mm too tall AND R5 PSU
+   short by 150 W (required 600 W). Both errors are reported at once.
+3. Swap the cooler to `ts-cool-air-155-dual` and the PSU to `ts-psu-750` (preset "S7 fixed"; #4)
+   → **Approved**, required 600 W.
+4. Error cases: set CPU to "— select —" and press Check (#5) → **400** with `errors.cpuId`; or S4,
+   an E-ATX board in a Mini-ITX case (#6) → **Rejected** with only R1-FORM-FACTOR. On the page,
+   switching the tenant to `pcmeistrai` reloads the dropdowns with only `pm-` components.
 5. Tenant isolation (#7–#15): with `X-Tenant-Id: pcmeistrai`,
    `GET /api/builds/11111111-1111-1111-1111-111111111111` → **404**; `PUT` and `DELETE` → **404**;
    then as `techshop` the same `GET` → 200, build "Biuro PC" unchanged. pcmeistrai using `ts-` IDs
@@ -175,15 +182,15 @@ src/
   AdvancedPCBuilder.Infrastructure/  EF Core + SQLite: AppDbContext (tenant filters + guard), entities,
                                      EfComponentCatalog, EfBuildRepository, SeedData
   AdvancedPCBuilder.Api/             Minimal API: Program.cs, Endpoints/, Contracts/ (JSON DTOs),
-                                     Tenancy/ (X-Tenant-Id middleware), demo.http
+                                     Tenancy/ (X-Tenant-Id middleware), demo.http,
+                                     wwwroot/index.html (demo page, plain HTML + JavaScript, no build step)
 tests/
   AdvancedPCBuilder.Core.Tests/      pure unit tests: Rules/, Engine/, Scenarios/, Application/
-  AdvancedPCBuilder.Api.Tests/       WebApplicationFactory tests: API, tenant isolation, DbContext isolation
+  AdvancedPCBuilder.Api.Tests/       WebApplicationFactory tests: API, tenant isolation, DbContext isolation, demo page
 docs/
   PSP_Kursinis_1etapas_v2.md         Stage 1 design (source of truth for the rules)
   STAGE2_PLAN.md                     implementation plan
   DECISIONS.md                       deviations from the Stage 1 design and why
-  DEFENCE_NOTES.md                   code walkthrough: request flow, isolation, where to make changes
   AI_LOG.md                          what was AI-generated per phase
 ```
 

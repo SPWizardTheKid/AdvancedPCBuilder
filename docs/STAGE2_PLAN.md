@@ -273,10 +273,10 @@ Required: cpuId, motherboardId, ram, caseId, psuId. Optional: gpuId, cpuCoolerId
 - **Done when:** `git status` clean, all boxes ticked. Commit. Tell the student to push.
 
 ### Phase 6 — OPTIONAL simple UI (only if Phases 0–5 are done and committed)
-- [ ] One `wwwroot/index.html` (vanilla JS + inline CSS, no build step), served via `UseDefaultFiles()` + `UseStaticFiles()`
-- [ ] Tenant dropdown (techshop / pcmeistrai, hardcoded), component dropdowns loaded from `/api/components?type=`, quantity inputs, case fans, "Check" button
-- [ ] Result panel: status badge, required PSU W, issues table (code, severity, message), response time in ms
-- [ ] Preset buttons "S1", "S7", "S7 fixed" to make the demo fast
+- [x] One `wwwroot/index.html` (vanilla JS + inline CSS, no build step), served via `UseDefaultFiles()` + `UseStaticFiles()`
+- [x] Tenant dropdown (techshop / pcmeistrai, hardcoded), component dropdowns loaded from `/api/components?type=`, quantity inputs, case fans, "Check" button
+- [x] Result panel: status badge, required PSU W, issues table (code, severity, message), response time in ms
+- [x] Preset buttons "S1", "S7", "S7 fixed" to make the demo fast
 - **Done when:** demo steps work through the page. Commit.
 - Timebox: if it is not working within ~1 hour, revert and demo via Scalar/demo.http.
 

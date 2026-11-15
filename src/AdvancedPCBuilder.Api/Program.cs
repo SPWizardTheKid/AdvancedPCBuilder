@@ -52,11 +52,12 @@ app.UseExceptionHandler(new ExceptionHandlerOptions
         : StatusCodes.Status500InternalServerError
 });
 app.UseStatusCodePages();          // ProblemDetails body for empty 4xx/5xx responses (e.g. unknown route → 404)
+app.UseDefaultFiles();             // "/" → wwwroot/index.html (the simple demo page)
+app.UseStaticFiles();              // serves files from wwwroot; no tenant needed for the page itself
 app.UseMiddleware<TenantResolutionMiddleware>();   // /api/* only: X-Tenant-Id → 401 or tenant context
 
 app.MapOpenApi();                  // /openapi/v1.json
 app.MapScalarApiReference();       // /scalar (interactive API page)
-app.MapGet("/", () => Results.Redirect("/scalar")).ExcludeFromDescription();
 app.MapHealthChecks("/health");
 
 app.MapCompatibilityEndpoints();
