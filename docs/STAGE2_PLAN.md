@@ -234,13 +234,13 @@ Required: cpuId, motherboardId, ram, caseId, psuId. Optional: gpuId, cpuCoolerId
 - *If time runs very short:* R1–R5 + R7 are the minimum; R6 and R8 next. Never skip tests for a rule that exists.
 
 ### Phase 2 — Application layer + persistence + tenancy
-- [ ] Core/Application: `ITenantContext`, `IComponentCatalog` (`FindByIdsAsync`, `ListAsync(type?)`, `FindAsync(id)`), `IBuildRepository`
-- [ ] `BuildRequest`, `BuildResolver` (validation + mapping to `BuildSpecification`), `CompatibilityCheckService`, `BuildService` + application tests from §5
-- [ ] Infrastructure: `AppDbContext` with `TenantEntity`, `ComponentEntity (Id, TenantId, Type, Name, SpecJson)`, `SavedBuildEntity (Id, TenantId, Name, RequestJson, ReportJson, UpdatedAt)`
-- [ ] Global query filters on `ComponentEntity` and `SavedBuildEntity`: `e.TenantId == _tenant.TenantId`
-- [ ] `SaveChanges`/`SaveChangesAsync` guard: Added → TenantId must equal current (set it if empty); Modified/Deleted with another TenantId → throw `InvalidOperationException`
-- [ ] `ComponentSpecSerializer` (type discriminator → concrete spec record), `EfComponentCatalog`, `EfBuildRepository`
-- [ ] `SeedData`: `EnsureCreated()`, seed 2 tenants + catalogs + saved builds from §4 when DB empty. Seed each tenant through a DbContext created with that tenant's context (no filter/guard bypass hacks)
+- [x] Core/Application: `ITenantContext`, `IComponentCatalog` (`FindByIdsAsync`, `ListAsync(type?)`, `FindAsync(id)`), `IBuildRepository`
+- [x] `BuildRequest`, `BuildResolver` (validation + mapping to `BuildSpecification`), `CompatibilityCheckService`, `BuildService` + application tests from §5
+- [x] Infrastructure: `AppDbContext` with `TenantEntity`, `ComponentEntity (Id, TenantId, Type, Name, SpecJson)`, `SavedBuildEntity (Id, TenantId, Name, RequestJson, ReportJson, UpdatedAt)`
+- [x] Global query filters on `ComponentEntity` and `SavedBuildEntity`: `e.TenantId == _tenant.TenantId`
+- [x] `SaveChanges`/`SaveChangesAsync` guard: Added → TenantId must equal current (set it if empty); Modified/Deleted with another TenantId → throw `InvalidOperationException`
+- [x] `ComponentSpecSerializer` (type discriminator → concrete spec record), `EfComponentCatalog`, `EfBuildRepository`
+- [x] `SeedData`: `EnsureCreated()`, seed 2 tenants + catalogs + saved builds from §4 when DB empty. Seed each tenant through a DbContext created with that tenant's context (no filter/guard bypass hacks)
 - **Done when:** build + tests green. Commit.
 
 ### Phase 3 — API
