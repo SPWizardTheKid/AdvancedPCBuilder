@@ -66,7 +66,7 @@ src/
 tests/
   AdvancedPCBuilder.Core.Tests/   Fixtures/TestComponents.cs, Rules/*, Engine/*, Scenarios/*, Application/*
   AdvancedPCBuilder.Api.Tests/    ApiFactory.cs, CompatibilityApiTests, TenantIsolationTests, DbContextIsolationTests
-docs/  PSP_Kursinis_1etapas_v2.md, STAGE2_PLAN.md, DECISIONS.md, AI_LOG.md, DEFENCE_NOTES.md
+docs/  PSP_Kursinis_1etapas_v2.md, STAGE2_PLAN.md, DECISIONS.md, AI_LOG.md
 README.md, .gitignore (dotnet + *.db), CLAUDE.md
 ```
 
@@ -268,7 +268,6 @@ Required: cpuId, motherboardId, ram, caseId, psuId. Optional: gpuId, cpuCoolerId
 
 ### Phase 5 — README, docs, final verification
 - [x] `README.md` (English): purpose; prerequisites (.NET 10 SDK, exact version from `dotnet --version`; VS Code + C# Dev Kit optional; REST Client extension optional); configuration (`appsettings.json`: connection string, PowerEstimates; no API keys needed in Stage 2); **one run command**; test command; tenants and sample data table; demo steps (§9); how to reset DB (delete `advancedpcbuilder.db`); project structure; "Stage 3 scope" list
-- [x] `docs/DEFENCE_NOTES.md`: where each rule lives; how a request flows (endpoint → service → resolver → engine → rules); how isolation works (middleware → ITenantContext → query filter → SaveChanges guard); likely "small change" requests and exactly where to make them (see §10)
 - [x] Fresh-clone check: clone into a temp folder, run the README commands verbatim, all tests pass, app starts
 - **Done when:** `git status` clean, all boxes ticked. Commit. Tell the student to push.
 
@@ -300,7 +299,7 @@ Required: cpuId, motherboardId, ram, caseId, psuId. Optional: gpuId, cpuCoolerId
 5. Isolation: with `X-Tenant-Id: pcmeistrai`, `GET /api/builds/11111111-…` → 404; `PUT` → 404; then as `techshop` the build is unchanged.
 6. `dotnet test` → all green, show test names for S1–S7 and isolation.
 
-## 10. Likely live-change requests (for DEFENCE_NOTES.md)
+## 10. Likely live-change requests
 
 | Request | Where |
 |---|---|
